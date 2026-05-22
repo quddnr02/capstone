@@ -22,3 +22,8 @@ runs/
 # Temporary files
 *.tmp
 *.swp
+*.pyc
+*.log
+*.ppm
+service_module/person_tracking/openni_color.png
+service_module/person_tracking/openni_depth.png
