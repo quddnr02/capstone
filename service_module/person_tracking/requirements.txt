@@ -1,0 +1,7 @@
+numpy
+opencv-python
+ultralytics
+ncnn
+lap
+PyYAML
+# primesense(OpenNI2 wrapper)는 라즈베리파이 환경에서 별도 설치/구성 필요
