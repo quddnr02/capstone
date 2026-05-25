@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 import time
 from pathlib import Path
 
@@ -7,10 +8,13 @@ import cv2
 import yaml
 
 from person_tracking.camera import AstraCamera
+from person_tracking.can_sender import CanTargetSender
 from person_tracking.detector import PersonDetector
 from person_tracking.display import Display
 from person_tracking.measure import Measure
 from person_tracking.target_manager import TargetManager
+
+CAN_TX_HZ = 20.0
 
 
 def load_config(config_path: Path) -> dict:
@@ -26,7 +30,8 @@ def main():
     project_root = Path(__file__).resolve().parents[2]
     config = load_config(project_root / "config" / "config.yaml")
 
-    camera = AstraCamera(config["paths"]["openni"])
+    openni_path = os.environ.get("OPENNI_PATH", config["paths"]["openni"])
+    camera = AstraCamera(openni_path)
     detector = PersonDetector(config["paths"]["model"], config["paths"]["tracker"], config["detection"]["image_size"], config["detection"]["person_class_id"])
     measure = Measure(config["measure"])
     target_manager = TargetManager(config["target"])
@@ -35,6 +40,15 @@ def main():
     frame_count = 0
     last_time = time.time()
     fps = 0.0
+
+    can_sender = None
+    can_send_interval = 1.0 / CAN_TX_HZ
+    last_can_tx_time = 0.0
+    try:
+        can_sender = CanTargetSender(channel="can0", interface="socketcan", arbitration_id=0x101)
+        print("[INFO] CAN sender initialized (channel=can0, id=0x101)")
+    except Exception as exc:
+        print(f"[WARN] CAN sender unavailable: {exc}")
 
     try:
         camera.start()
@@ -62,6 +76,11 @@ def main():
                 frame_count = 0
                 last_time = now
 
+            now_tx = time.time()
+            if can_sender is not None and (now_tx - last_can_tx_time) >= can_send_interval:
+                can_sender.send_target(target)
+                last_can_tx_time = now_tx
+
             if key == ord("q"):
                 break
             if key == ord("r"):
@@ -72,6 +91,8 @@ def main():
         print("\nStopped")
     finally:
         camera.close()
+        if can_sender is not None:
+            can_sender.close()
         display.close()
 
 

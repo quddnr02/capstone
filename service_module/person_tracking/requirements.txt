@@ -1,6 +1,7 @@
 numpy
 opencv-python
 ultralytics
+python-can
 ncnn
 lap
 PyYAML
