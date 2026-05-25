@@ -21,3 +21,9 @@ target:
 
 display:
   enabled: true
+
+follow_control:
+  target_follow_distance_m: 1.0
+  distance_deadband_m: 0.10
+  angle_deadband_deg: 3.0
+  target_lost_timeout_sec: 0.5
