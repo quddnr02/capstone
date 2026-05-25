@@ -41,11 +41,20 @@ def main():
     last_time = time.time()
     fps = 0.0
 
+    follow_control = config.get("follow_control", {})
+
     can_sender = None
     can_send_interval = 1.0 / CAN_TX_HZ
     last_can_tx_time = 0.0
     try:
-        can_sender = CanTargetSender(channel="can0", interface="socketcan", arbitration_id=0x101)
+        can_sender = CanTargetSender(
+            channel="can0",
+            interface="socketcan",
+            arbitration_id=0x101,
+            target_follow_distance_m=float(follow_control.get("target_follow_distance_m", 1.0)),
+            distance_deadband_m=float(follow_control.get("distance_deadband_m", 0.10)),
+            angle_deadband_deg=float(follow_control.get("angle_deadband_deg", 3.0)),
+        )
         print("[INFO] CAN sender initialized (channel=can0, id=0x101)")
     except Exception as exc:
         print(f"[WARN] CAN sender unavailable: {exc}")
