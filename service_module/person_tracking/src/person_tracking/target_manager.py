@@ -15,6 +15,7 @@ class TargetManager:
         self.last_target_center = None
         self.last_target_depth_m = None
         self.last_target_angle_x = None
+        self.reconnected_this_frame = False
 
     @property
     def target_track_id(self):
@@ -26,6 +27,7 @@ class TargetManager:
         self.last_target_center = None
         self.last_target_depth_m = None
         self.last_target_angle_x = None
+        self.reconnected_this_frame = False
 
     def center_distance(self, c1, c2):
         if c1 is None or c2 is None:
@@ -70,6 +72,7 @@ class TargetManager:
         return best
 
     def update(self, detections: list[dict], image_width: int):
+        self.reconnected_this_frame = False
         target = None
         if self._target_track_id is None:
             target = self.select_initial_target(detections, image_width)
@@ -88,6 +91,7 @@ class TargetManager:
                     target = reconnected
                     self._target_track_id = target["track_id"]
                     self.target_lost_count = 0
+                    self.reconnected_this_frame = True
                     print(f"TARGET RECONNECTED -> new track_id={self._target_track_id}")
                 else:
                     self.target_lost_count += 1
